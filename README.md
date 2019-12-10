@@ -25,13 +25,26 @@ and publishes waypoints to:
 
 ##### Tasks
 
-Find a waypoints ahead of vehicle from 
+Find a waypoints ahead of vehicle by looking at the current pose finding it in the base_waypoints.
 
 
 #### DBW Node
 
 Receive Final waypoints and and publish commands to controller
 
+This service subscribes to:
+- `/final_waypoints`
+- `/vehicle/dbw_enabled` - to find out if it is self driving or not
+
+and publishes commands to:
+- `/vehicle/throttle_cmd`
+- `/vehicle/brake_cmd`
+- `/vehicle/stearing_cmd`
+
+##### Tasks:
+
+Write functions to convert the waypoints into a target throttle, break and stearing settings.
+Helper functions are procided in the form of `pid` and `lowpass ` for deciding acceleration and `yaw_controller` for steering.
 
 #### Traffic Light Detection
 #### Waypoint Updater
