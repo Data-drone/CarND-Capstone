@@ -30,7 +30,8 @@ Find a waypoints ahead of vehicle by looking at the current pose finding it in t
 
 #### DBW Node
 
-Receive Final waypoints and and publish commands to controller
+Receive Final waypoints and and publish commands to twist controller:
+TODO - May need to edit cpp code to make it drive a bit smoother
 
 This service subscribes to:
 - `/final_waypoints`
