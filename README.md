@@ -19,6 +19,7 @@ Finds waypoints ahead of the car:
 This service subscribes to:
 - `/base_waypoints`
 - `/current_pose`
+- `'/traffic_waypoint` - to implement
 
 and publishes waypoints to:
 - `/final_waypointss`
@@ -48,4 +49,12 @@ Write functions to convert the waypoints into a target throttle, break and stear
 Helper functions are procided in the form of `pid` and `lowpass ` for deciding acceleration and `yaw_controller` for steering.
 
 #### Traffic Light Detection
-#### Waypoint Updater
+
+This service subscribes to:
+- `/base_waypoints`
+- `/current_pose`
+- `/image_color`
+- `/vehicle/traffic_lights`
+
+and publishes index of waypoint to:
+- `/traffic_waypoint`
