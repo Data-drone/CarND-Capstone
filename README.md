@@ -58,3 +58,7 @@ This service subscribes to:
 
 and publishes index of waypoint to:
 - `/traffic_waypoint`
+
+##### Tasks:
+
+Find the nearest traffic light from the base_waypoints. Based on the image_color determine whether it is necessary to stop.
