@@ -62,3 +62,9 @@ and publishes index of waypoint to:
 ##### Tasks:
 
 Find the nearest traffic light from the base_waypoints. Based on the image_color determine whether it is necessary to stop.
+
+#### Object Detection Lab
+
+Build an object detector for car
+
+##### Tasks:
