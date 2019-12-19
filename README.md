@@ -68,3 +68,5 @@ Find the nearest traffic light from the base_waypoints. Based on the image_color
 Build an object detector for car
 
 ##### Tasks:
+
+Code up an object detector module:
