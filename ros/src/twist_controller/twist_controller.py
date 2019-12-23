@@ -1,6 +1,7 @@
-from ros.src.twist_controller.yaw_controller import YawController
-from ros.src.twist_controller.pid import PID
-from ros.src.twist_controller.lowpass import LowPassFilter
+# ros.src.twist_controller.
+from yaw_controller import YawController
+from pid import PID
+from lowpass import LowPassFilter
 import rospy
 
 GAS_DENSITY = 2.858
@@ -53,7 +54,7 @@ class Controller(object):
         self.last_time = current_time
 
         throttle = self.throttle_controller.step(vel_error, sample_time)
-        brake = 9
+        brake = 0
 
         if linear_vel == 0 and current_vel < 0.1:
             throttle = 0
