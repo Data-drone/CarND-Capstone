@@ -36,6 +36,7 @@ class WaypointUpdater(object):
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        #rospy.Subscriber('/obstacle_waypoint', )
         
         # current topic doesn't exist
         # rospy.Subscriber('/obstacle_waypoint', , self.obstacle_cb)
@@ -52,8 +53,10 @@ class WaypointUpdater(object):
         self.waypoints_2d = None
 
         #rospy.spin()
+        self.loop()
 
     def loop(self):
+        # use loop rather than spin to control the rate
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
             if self.pose and self.base_waypoints:
@@ -61,10 +64,13 @@ class WaypointUpdater(object):
                 self.publish_waypoints(closest_waypoint_idx)
             rate.sleep()
 
-    def get_closest_waypoint_id(self):
-        x = self.pose.pose.position.X
+    def get_closest_waypoint_idx(self):
+        # get current pose
+        x = self.pose.pose.position.x
         y = self.pose.pose.position.y
-        closest_idx - self.waypoint_tree.query([x, y], 1)[1]
+
+        # find closest pose
+        closest_idx = self.waypoint_tree.query([x, y], 1)[1]
 
         # verify closest behind vehicle
         closest_coord = self.waypoints_2d[closest_idx]
@@ -88,11 +94,15 @@ class WaypointUpdater(object):
         self.final_waypoints_pub.publish(lane)
 
     def pose_cb(self, msg):
-        # TODO: Implement
+        # TODO: 2
+        # just storing the car's pose
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
-        # TODO: Implement
+        # TODO: 1
+        # Take the waypoints from the message
+        # make a list of [x,y]
+        # load it all into a KDTree for fast retrieval
         self.base_waypoints = waypoints
         if not self.waypoints_2d:
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
