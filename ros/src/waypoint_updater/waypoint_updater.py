@@ -25,7 +25,7 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-
+MAX_DECEL = .5
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -45,12 +45,18 @@ class WaypointUpdater(object):
 
         # TODO: Add other member variables you need below
         self.pose = None
-        self.base_waypoints = None
-        self.traffic = None
+        self.base_lane = None
+        self.stopline_wp_idx = -1
 
         # from walkthrough code:
         self.waypoint_tree = None
         self.waypoints_2d = None
+
+        #self.base_waypoints = None
+        #self.traffic = None
+
+        
+
 
         #rospy.spin()
         self.loop()
@@ -59,9 +65,9 @@ class WaypointUpdater(object):
         # use loop rather than spin to control the rate
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
-            if self.pose and self.base_waypoints:
-                closest_waypoint_idx = self.get_closest_waypoint_idx()
-                self.publish_waypoints(closest_waypoint_idx)
+            if self.pose and self.base_lane:
+                #closest_waypoint_idx = self.get_closest_waypoint_idx()
+                self.publish_waypoints()
             rate.sleep()
 
     def get_closest_waypoint_idx(self):
@@ -152,7 +158,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        self.traffic = msg
+        self.stopline_wp_idx = msg.data
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
