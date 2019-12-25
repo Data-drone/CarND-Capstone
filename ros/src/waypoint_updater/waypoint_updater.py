@@ -46,6 +46,7 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
         self.pose = None
         self.base_lane = None
+        self.base_waypoints = None
         self.stopline_wp_idx = -1
 
         # from walkthrough code:
@@ -54,10 +55,6 @@ class WaypointUpdater(object):
 
         #self.base_waypoints = None
         #self.traffic = None
-
-        
-
-
         #rospy.spin()
         self.loop()
 
@@ -116,7 +113,7 @@ class WaypointUpdater(object):
         farthest_idx = closest_idx + LOOKAHEAD_WPS
         base_waypoints = self.base_lane.waypoints[closest_idx:farthest_idx]
 
-        if self.stopline_wp_idx == 1 or (self.stopline_wp_idx == farthest_idx):
+        if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):
             lane.waypoints = base_waypoints
         else:
             lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx)
@@ -133,7 +130,7 @@ class WaypointUpdater(object):
             stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
             dist = self.distance(waypoints, i, stop_idx)
             vel = math.sqrt(2 * MAX_DECEL * dist)
-            if vel < 1.:
+            if vel < 1.0:
                 vel = 0.
 
             p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
