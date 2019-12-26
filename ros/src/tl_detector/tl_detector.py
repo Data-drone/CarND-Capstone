@@ -99,7 +99,7 @@ class TLDetector(object):
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
 
-    def get_closest_waypoint(self, pose):
+    def get_closest_waypoint(self, x,y):
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
         Args:
@@ -109,8 +109,8 @@ class TLDetector(object):
         """
         #TODO implement
         # assume we are at the first pose loc already
-        x = pose.position.x
-        y = pose.position.y
+        #x = pose.position.x
+        #y = pose.position.y
 
         closest_idx = self.waypoint_tree.query([x, y], 1)[1]
         
@@ -141,18 +141,30 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
         light = None
+        line_wp_idx = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
+
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
+            car_position = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
 
         #TODO find the closest visible traffic light (if one exists)
+            diff = len(self.waypoints.waypoints)
+            for i, light in enumerate(self.lights):
+                line = stop_line_positions[i]
+                line_closest_wp = self.get_closest_waypoint(line[0]. line[1])
+
+                distance = line_closest_wp - car_position
+                if distance >= 0 and distance < diff:
+                    diff = distance
+                    closest_light = light
+                    light_wp = line_closest_wp
 
         if light:
             state = self.get_light_state(light)
             return light_wp, state
-        self.waypoints = None
+        #self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
