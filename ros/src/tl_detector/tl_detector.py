@@ -13,7 +13,7 @@ import yaml
 
 from scipy.spatial import KDTree
 
-STATE_COUNT_THRESHOLD = 2
+STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
@@ -163,7 +163,7 @@ class TLDetector(object):
                 line_closest_wp = self.get_closest_waypoint(line[0], line[1])
 
                 distance = line_closest_wp - car_position
-                rospy.logwarn("Traffic Light distance: {0}".format(distance))
+                #rospy.logwarn("Traffic Light distance: {0}".format(distance))
             
                 if distance >= 0 and distance < diff:
                     diff = distance
@@ -172,8 +172,8 @@ class TLDetector(object):
 
         if closest_light:
             state = self.get_light_state(closest_light)
-            rospy.logwarn("Traffic Light pos: {0}".format(light_wp))
-            rospy.logwarn("Light state: {0}".format(state))
+            #rospy.logwarn("Traffic Light pos: {0}".format(light_wp))
+            #rospy.logwarn("Light state: {0}".format(state))
             return light_wp, state
         #self.waypoints = None
         return -1, TrafficLight.UNKNOWN
