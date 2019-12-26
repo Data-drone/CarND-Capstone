@@ -13,7 +13,7 @@ import yaml
 
 from scipy.spatial import KDTree
 
-STATE_COUNT_THRESHOLD = 3
+STATE_COUNT_THRESHOLD = 2
 
 class TLDetector(object):
     def __init__(self):
@@ -24,6 +24,7 @@ class TLDetector(object):
         # reuse the waypoint procesing from before
         self.waypoints = None
         self.waypoints_2d = None
+        self.waypoint_tree = None
 
         self.camera_image = None
         self.lights = []
@@ -124,6 +125,9 @@ class TLDetector(object):
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
+
+        return light.state
+        """
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -132,6 +136,8 @@ class TLDetector(object):
 
         #Get classification
         return self.light_classifier.get_classification(cv_image)
+
+        """
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
@@ -147,15 +153,18 @@ class TLDetector(object):
         stop_line_positions = self.config['stop_line_positions']
 
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
+            car_position = self.get_closest_waypoint(self.pose.pose.position.x, 
+                                                    self.pose.pose.position.y)
 
-        #TODO find the closest visible traffic light (if one exists)
+            #TODO find the closest visible traffic light (if one exists)
             diff = len(self.waypoints.waypoints)
             for i, light in enumerate(self.lights):
                 line = stop_line_positions[i]
                 line_closest_wp = self.get_closest_waypoint(line[0], line[1])
 
                 distance = line_closest_wp - car_position
+                rospy.logwarn("Traffic Light distance: {0}".format(distance))
+            
                 if distance >= 0 and distance < diff:
                     diff = distance
                     closest_light = light

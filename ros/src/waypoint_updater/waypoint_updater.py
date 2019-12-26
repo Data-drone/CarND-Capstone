@@ -49,7 +49,7 @@ class WaypointUpdater(object):
 
         # this will only appear if we need to stop 
         # as the light detector only publishes when it is red
-        self.traffic_light_wp = None
+        self.traffic_light_wp = -1
 
         self.stopline_wp_idx = -1
 
@@ -120,8 +120,8 @@ class WaypointUpdater(object):
             stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
             dist = self.distance(waypoints, i, stop_idx)
             vel = math.sqrt(2 * MAX_DECEL * dist)
-            if vel < 1.:
-                vel = 0.
+            if vel < 1.0:
+                vel = 0.0
             
             p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
             temp.append(p)
@@ -145,6 +145,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
+        self.stopline_wp_idx = msg.data
         self.traffic_light_wp = msg.data
 
     def obstacle_cb(self, msg):
