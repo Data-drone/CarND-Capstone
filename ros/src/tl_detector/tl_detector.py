@@ -140,8 +140,8 @@ class TLDetector(object):
             int: index of waypoint closes to the upcoming stop line for a traffic light (-1 if none exists)
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
-        light = None
-        line_wp_idx = None
+        closest_light = None
+        light_wp = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
@@ -153,7 +153,7 @@ class TLDetector(object):
             diff = len(self.waypoints.waypoints)
             for i, light in enumerate(self.lights):
                 line = stop_line_positions[i]
-                line_closest_wp = self.get_closest_waypoint(line[0]. line[1])
+                line_closest_wp = self.get_closest_waypoint(line[0], line[1])
 
                 distance = line_closest_wp - car_position
                 if distance >= 0 and distance < diff:
@@ -161,8 +161,10 @@ class TLDetector(object):
                     closest_light = light
                     light_wp = line_closest_wp
 
-        if light:
-            state = self.get_light_state(light)
+        if closest_light:
+            state = self.get_light_state(closest_light)
+            rospy.logwarn("Traffic Light pos: {0}".format(light_wp))
+            rospy.logwarn("Light state: {0}".format(state))
             return light_wp, state
         #self.waypoints = None
         return -1, TrafficLight.UNKNOWN
