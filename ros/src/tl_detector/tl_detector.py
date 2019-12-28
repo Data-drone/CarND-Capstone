@@ -62,6 +62,7 @@ class TLDetector(object):
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
+      
         # Loads up waypoints into a KDTree
         self.waypoints = waypoints
         if not self.waypoints_2d:
@@ -100,7 +101,9 @@ class TLDetector(object):
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
 
-    def get_closest_waypoint(self, x,y):
+
+    def get_closest_waypoint(self, x, y):
+
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
         Args:
@@ -108,13 +111,14 @@ class TLDetector(object):
         Returns:
             int: index of the closest waypoint in self.waypoints
         """
+
         #TODO implement
         # assume we are at the first pose loc already
         #x = pose.position.x
         #y = pose.position.y
 
         closest_idx = self.waypoint_tree.query([x, y], 1)[1]
-        
+
         return closest_idx
 
 
@@ -128,6 +132,10 @@ class TLDetector(object):
 
         return light.state
         """
+
+        return light.state
+        # we need the below with actual data but not simulator data
+        """
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -136,6 +144,7 @@ class TLDetector(object):
 
         #Get classification
         return self.light_classifier.get_classification(cv_image)
+        """
 
         """
 
@@ -147,12 +156,14 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
         closest_light = None
+
         light_wp = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
 
         if(self.pose):
+
             car_position = self.get_closest_waypoint(self.pose.pose.position.x, 
                                                     self.pose.pose.position.y)
 
@@ -169,6 +180,7 @@ class TLDetector(object):
                     diff = distance
                     closest_light = light
                     light_wp = line_closest_wp
+
 
         if closest_light:
             state = self.get_light_state(closest_light)
