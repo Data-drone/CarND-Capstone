@@ -25,7 +25,8 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-MAX_DECEL = .5
+MAX_DECEL = 0.5
+
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -47,6 +48,11 @@ class WaypointUpdater(object):
         self.pose = None
         self.base_lane = None
         self.base_waypoints = None
+
+        # this will only appear if we need to stop 
+        # as the light detector only publishes when it is red
+        self.traffic_light_wp = -1
+
         self.stopline_wp_idx = -1
 
         # from walkthrough code:
@@ -99,10 +105,40 @@ class WaypointUpdater(object):
     Switch out for final waypoint code
 
     def publish_waypoints(self, closest_idx):
+        lane = self.generate_lane(closest_idx)
+        self.final_waypoints_pub.publish(lane)
+
+    def generate_lane(self, closest_idx):
         lane = Lane()
         lane.header = self.base_waypoints.header
-        lane.waypoints = self.base_waypoints.waypoints[closest_idx:closest_idx + LOOKAHEAD_WPS]
-        self.final_waypoints_pub.publish(lane)
+
+        farthest_idx = closest_idx + LOOKAHEAD_WPS
+        base_waypoints = self.base_waypoints.waypoints[closest_idx:farthest_idx]
+        
+        if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):
+            lane.waypoints = base_waypoints
+        else:
+            lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx)
+
+        return lane
+
+    def decelerate_waypoints(self, waypoints, closest_idx):
+        temp = []
+        for i, wp in enumerate(waypoints):
+
+            p = Waypoint()
+            p.pose = wp.pose
+
+            stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
+            dist = self.distance(waypoints, i, stop_idx)
+            vel = math.sqrt(2 * MAX_DECEL * dist)
+            if vel < 1.0:
+                vel = 0.0
+            
+            p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+            temp.append(p)
+        
+        return temp
 
     """
 
@@ -156,15 +192,19 @@ class WaypointUpdater(object):
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
         self.stopline_wp_idx = msg.data
+        self.traffic_light_wp = msg.data
+
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
         pass
 
     def get_waypoint_velocity(self, waypoint):
+        # need to adjust for decel and accel?
         return waypoint.twist.twist.linear.x
 
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
+        # need to adjust for decel and accel?
         waypoints[waypoint].twist.twist.linear.x = velocity
 
     def distance(self, waypoints, wp1, wp2):
