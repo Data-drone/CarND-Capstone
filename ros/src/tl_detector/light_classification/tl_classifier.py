@@ -31,5 +31,8 @@ class TLClassifier(object):
 
         """
         #TODO implement light color prediction
+        with tf.Session(graph=detection_graph) as sess:
+            classification = sess.run([], feed_dict={image_tensor: image})
 
+        # depending on the classification, we will return different TrafficLight variables
         return TrafficLight.UNKNOWN
