@@ -56,6 +56,9 @@ class TLDetector(object):
         self.last_wp = -1
         self.state_count = 0
 
+        # manual flick this for now
+        self.collect = False
+
         rospy.spin()
 
     def pose_cb(self, msg):
@@ -89,6 +92,12 @@ class TLDetector(object):
         of times till we start using it. Otherwise the previous stable state is
         used.
         '''
+
+        # add routine to collect images for labelling
+        if self.collect:
+            #TODO we need a filename generator?
+            #cv2.imwrite(, msg)
+
         if self.state != state:
             self.state_count = 0
             self.state = state
