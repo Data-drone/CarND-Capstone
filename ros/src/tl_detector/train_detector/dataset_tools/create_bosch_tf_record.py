@@ -17,10 +17,13 @@ import tensorflow as tf
 
 flags = tf.app.flags
 flags.DEFINE_string('data_dir', '', 'root directory to Bosch dataset.')
+flags.DEFINE_string('subset', '', 'train or test')
 flags.DEFINE_string('output_path', '', 'Path to output TFRecord')
 #flags.DEFINE_string('label_map_path', 'data/pascal_label_map.pbtxt',
 #                    'Path to label map proto')
 FLAGS = flags.FLAGS
+
+SETS = ['train', 'test']
 
 def recursive_parse_xml_to_dict(xml):
     # from tf object detection api dataset_utils
@@ -48,14 +51,98 @@ def recursive_parse_xml_to_dict(xml):
       result[child.tag].append(child_result[child.tag])
   return {xml.tag: result}
 
+def generate_data_dict(root_path):
+    """parses folder and the returns the paths of all the images
+    
+    The files have been placed in different folders depending on which drive
+    they came from so we need to find them to convert to record
+
+    TODO Extension: sample across different drives for normalisation?
+
+    Args:
+      root_path: path to explore for subfolders
+
+    Returns:
+      Python Dictionary for doing look-ups
+    
+    """
+
+    file_dict = {}
+    for (dirpath, dirnames, filenames) in os.walk(root_path):
+        for file in filenames:
+            file_dict[file] = os.path.join(dirpath, file)
+
+    return file_dict
+
+
 def dict_to_tf_example(data,
-                        dataset_directory,
-                        label_map_dict,
-                        )
+                        dataset_dictionary,
+                        label_map_dict, # do we need?
+                        ignore_difficult_instances=False):
+                        
+    image_name = data['filename']
+    image_path = dataset_dictionary[image_name]
+    with tf.gfile.GFile(image_path, 'rb') as fid:
+        encoded_png = fid.read()
+    encoded_png_io = io.BytesIO(encoded_png)
+    image = PIL.Image.open(encoded_png_io)
+    key = hashlib.sha256(encoded_png).hexdigest()    
 
-                        pass
+    width = int(data['size']['width'])
+    height = int(data['size']['height'])
 
+    xmin = []
+    ymin = []
+    xmax = []
+    ymax = []
+    classes = []
+    classes_text = []
+    truncated = []
+    poses = []
+    difficult_obj = []
+  
+    for obj in data['object']
+        difficult = bool(int(obj['difficult']))
+        if ignore_difficult_instances and difficult:
+            continue
+
+        difficult_obj.append(int(difficult))
+
+        xmin.append(float(obj['bndbox']['xmin']) / width)
+        ymin.append(float(obj['bndbox']['ymin']) / height)
+        xmax.append(float(obj['bndbox']['xmax']) / width)
+        ymax.append(float(obj['bndbox']['ymax']) / height)
+        classes_text.append(obj['name'].encode('utf8'))
+        #classes.append(label_map_dict[obj['name']])
+        #truncated.append(int(obj['truncated']))
+        poses.append(obj['pose'].encode('utf8'))
+
+        example = tf.train.Example(features=tf.train.Features(feature={
+      'image/height': dataset_util.int64_feature(height),
+      'image/width': dataset_util.int64_feature(width),
+      'image/filename': dataset_util.bytes_feature(
+          data['filename'].encode('utf8')),
+      'image/source_id': dataset_util.bytes_feature(
+          data['filename'].encode('utf8')),
+      'image/key/sha256': dataset_util.bytes_feature(key.encode('utf8')),
+      'image/encoded': dataset_util.bytes_feature(encoded_jpg),
+      'image/format': dataset_util.bytes_feature('jpeg'.encode('utf8')),
+      'image/object/bbox/xmin': dataset_util.float_list_feature(xmin),
+      'image/object/bbox/xmax': dataset_util.float_list_feature(xmax),
+      'image/object/bbox/ymin': dataset_util.float_list_feature(ymin),
+      'image/object/bbox/ymax': dataset_util.float_list_feature(ymax),
+      'image/object/class/text': dataset_util.bytes_list_feature(classes_text),
+      'image/object/class/label': dataset_util.int64_list_feature(classes), # WE NEED SORT THIS OUT
+      'image/object/difficult': dataset_util.int64_list_feature(difficult_obj),
+      'image/object/truncated': dataset_util.int64_list_feature(truncated),
+      'image/object/view': dataset_util.bytes_list_feature(poses),
+    }))
+    return example
+
+    
 def main(_):
+    if FLAGS.set not in SETS:
+        raise ValueError('set must be in : {}'.format(SETS))
 
     data_dir = FLAGS.data_dir
     writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
@@ -66,6 +153,9 @@ def main(_):
     annotations_path = os.path.join(data_dir, 'annotations') # need check this
 
     annotations_list = os.listdir(annotations_path)
+
+    data_path = os.path.join(data_dir, 'rgb', FLAGS.set)
+    data_dict = generate_data_dict(data_path)
 
     for idx, _file in enumerate(annotations_list):
         if idx % 100 == 0:
@@ -80,7 +170,7 @@ def main(_):
         # we need to find the data... hmmmm.... 
         data = recursive_parse_xml_to_dict(xml)['annotation']
 
-        tf.example = dict
+        tf.example = dict_to_tf_example(data, data_dict)
 
     writer.close()
 
