@@ -13,14 +13,15 @@ import PIL.Image
 import tensorflow as tf
 
 import dataset_util
-#from object_detection.utils import label_map_util
+import label_map_util
+
 
 flags = tf.app.flags
 flags.DEFINE_string('data_dir', '', 'root directory to Bosch dataset.')
 flags.DEFINE_string('subset', '', 'train or test')
 flags.DEFINE_string('output_path', '', 'Path to output TFRecord')
-#flags.DEFINE_string('label_map_path', 'data/pascal_label_map.pbtxt',
-#                    'Path to label map proto')
+flags.DEFINE_string('label_map_path', 'data/bosch_label_map.pbtxt',
+                    'Path to label map proto')
 FLAGS = flags.FLAGS
 
 SETS = ['train', 'test']
@@ -54,6 +55,8 @@ def recursive_parse_xml_to_dict(xml):
         result[child.tag] = []
       result[child.tag].append(child_result[child.tag])
   return {xml.tag: result}
+
+
 
 def generate_data_dict(root_path):
     """parses folder and the returns the paths of all the images
@@ -155,7 +158,7 @@ def main(_):
 
     writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
 
-    #label_map_dict = label_map_util.get_label_map_dict(FLAGS.label_map_path)
+    label_map_dict = label_map_util.get_label_map_dict(FLAGS.label_map_path)
 
     logging.info('Reading bosch dataset')
 
@@ -179,9 +182,10 @@ def main(_):
 
         # we need to find the data... hmmmm.... 
         data = recursive_parse_xml_to_dict(xml)['annotaion']
+        #print(data)
 
         if 'object' in data.keys():
-            tf_example = dict_to_tf_example(data, data_dict, label_map_dict=None)
+            tf_example = dict_to_tf_example(data, data_dict, label_map_dict)
 
             writer.write(tf_example.SerializeToString())
 
