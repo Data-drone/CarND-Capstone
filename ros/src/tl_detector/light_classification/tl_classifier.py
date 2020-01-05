@@ -1,6 +1,7 @@
 import os
 from styx_msgs.msg import TrafficLight
 import tensorflow as tf
+import numpy as np
 
 class TLClassifier(object):
     def __init__(self):
@@ -33,10 +34,22 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
+
+        image_tensor = self.model_graph.get_tensor_by_name('image_tensor:0')
+        detection_boxes = self.model_graph.get_tensor_by_name('detection_boxes:0')
+        detection_scores = self.model_graph.get_tensor_by_name('detection_scores:0')
+        detection_classes = self.model_graph.get_tensor_by_name('detection_classes:0')
         
         #TODO implement light color prediction
-        #with tf.Session(graph=self.model_graph) as sess:
-        #    classification = sess.run([], feed_dict={image_tensor: image})
+        with tf.Session(graph=self.model_graph) as sess:
+            (boxes, scores, classes) = sess.run([detection_boxes, detection_scores, detection_classes], 
+                                        feed_dict={image_tensor: image})
+
+            boxes = np.squeeze(boxes)
+            scores = np.squeeze(scores)
+            classes = np.squeeze(classes)
+
+            confidence_cutoff = 0.8
 
         # depending on the classification, we will return different TrafficLight variables
         return TrafficLight.UNKNOWN
