@@ -1,12 +1,15 @@
+import os
 from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 
 class TLClassifier(object):
     def __init__(self):
         #TODO load classifier
-        self.MODEL_FILE = ''
+        current_path = os.path.dirname(os.path.realpath(__file__))
+        MODEL_DIR = 'faster_rcnn_inception_v2_export'
+        self.model_file = os.path.join(current_path, MODEL_DIR, 'frozen_inference_graph.pb')
 
-        self.model_graph = self.load_graph(self.MODEL_FILE)
+        self.model_graph = self.load_graph(self.model_file)
 
 
     def load_graph(self, graph_file):
@@ -32,8 +35,8 @@ class TLClassifier(object):
         """
         
         #TODO implement light color prediction
-        with tf.Session(graph=detection_graph) as sess:
-            classification = sess.run([], feed_dict={image_tensor: image})
+        #with tf.Session(graph=self.model_graph) as sess:
+        #    classification = sess.run([], feed_dict={image_tensor: image})
 
         # depending on the classification, we will return different TrafficLight variables
         return TrafficLight.UNKNOWN

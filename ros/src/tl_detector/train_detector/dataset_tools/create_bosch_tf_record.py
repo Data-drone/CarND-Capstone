@@ -107,7 +107,6 @@ def dict_to_tf_example(data,
     truncated = []
     poses = []
     difficult_obj = []
-  
     
     for obj in data['object']:
         difficult = bool(int(obj['difficult']))
@@ -116,11 +115,27 @@ def dict_to_tf_example(data,
 
         difficult_obj.append(int(difficult))
 
-        xmin.append(float(obj['bndbox']['xmin']) / width)
-        ymin.append(float(obj['bndbox']['ymin']) / height)
-        xmax.append(float(obj['bndbox']['xmax']) / width)
-        ymax.append(float(obj['bndbox']['ymax']) / height)
+        xmin_val = float(obj['bndbox']['xmin']) / width
+        ymin_val = float(obj['bndbox']['ymin']) / height
+        xmax_val = float(obj['bndbox']['xmax']) / width
+        ymax_val = float(obj['bndbox']['ymax']) / height
+        
+        try:
+            assert xmin_val < xmax_val 
+            assert ymin_val < ymax_val
+            assert xmin_val >= 0
+            assert ymin_val >= 0
+        except AssertionError as e:
+            print(image_path)
+            return None
+        
+        xmin.append(xmin_val)
+        ymin.append(ymin_val)
+        xmax.append(xmax_val)
+        ymax.append(ymax_val)
+        
         classes_text.append(obj['name'].encode('utf8'))
+        assert bosch_label_dict[obj['name']] is not None
         classes.append(bosch_label_dict[obj['name']])
         #truncated.append(int(obj['truncated']))
         poses.append(obj['pose'].encode('utf8'))
@@ -184,10 +199,11 @@ def main(_):
         data = recursive_parse_xml_to_dict(xml)['annotaion']
         #print(data)
 
-        if 'object' in data.keys():
+        if 'object' in data.keys(): 
             tf_example = dict_to_tf_example(data, data_dict, label_map_dict)
 
-            writer.write(tf_example.SerializeToString())
+            if tf_example is not None:
+                writer.write(tf_example.SerializeToString())
 
     writer.close()
 

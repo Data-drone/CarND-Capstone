@@ -13,6 +13,10 @@ RUN pip install --upgrade jupyter && \
     pip install jupyterlab && \
     pip install pyyaml lxml
 
+RUN apt-get -y install python3-tk
+
+RUN pip install Pillow
+
 ENV SHELL=bash
 
 #ENTRYPOINT ["jupyter lab", "--allow-root"]
