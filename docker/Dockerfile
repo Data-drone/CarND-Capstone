@@ -28,6 +28,9 @@ RUN apt-get install -y ros-$ROS_DISTRO-image-proc
 # socket io
 RUN apt-get install -y netbase
 
+# fix running locally with camera
+RUN pip install Pillow=6.2.1
+
 RUN mkdir /capstone
 VOLUME ["/capstone"]
 VOLUME ["/root/.ros/log/"]
