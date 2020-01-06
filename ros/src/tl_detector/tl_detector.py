@@ -135,9 +135,6 @@ class TLDetector(object):
         """
 
         #TODO implement
-        # assume we are at the first pose loc already
-        #x = pose.position.x
-        #y = pose.position.y
 
         closest_idx = self.waypoint_tree.query([x, y], 1)[1]
 
@@ -153,6 +150,7 @@ class TLDetector(object):
         """
 
         if not self.is_site:
+            rospy.logwarn('simply returning light state')
             return light.state
         """
 
@@ -166,6 +164,7 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         #Get classification
+        rospy.logwarn('running classifier')
         return self.light_classifier.get_classification(cv_image)
         """
 
@@ -185,8 +184,9 @@ class TLDetector(object):
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
 
-        if(self.pose):
-
+        if self.pose is not None:
+            #print(self.pose)
+            
             car_position = self.get_closest_waypoint(self.pose.pose.position.x, 
                                                     self.pose.pose.position.y)
 
