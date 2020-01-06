@@ -1,5 +1,9 @@
 *.py[cod]
-
+*.ipynb_checkpoints
+*.mp4
+tl_detector/train_detector/model_zoo/*
+tl_detector/train_detector/models/*/train/*
+*.record
 build
 devel
 
