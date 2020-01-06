@@ -10,7 +10,7 @@ class TLClassifier(object):
         MODEL_DIR = 'faster_rcnn_inception_v2_export'
         self.model_file = os.path.join(current_path, MODEL_DIR, 'frozen_inference_graph.pb')
 
-        self.model_graph = self.load_graph(self.model_file)
+        #self.model_graph = self.load_graph(self.model_file)
 
 
     def load_graph(self, graph_file):
