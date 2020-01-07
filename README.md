@@ -4,6 +4,12 @@ based off of project repo: https://github.com/udacity/CarND-Capstone
 
 This is the repo for my final Udacity Self Driving Car Nano-degree Capstone Project
 
+## Notes to Review
+
+This is an individual submission by:
+
+Brian Law - bpl.law@gmail.com
+
 
 ### Introduction
 
@@ -62,6 +68,13 @@ and publishes index of waypoint to:
 ##### Tasks:
 
 Find the nearest traffic light from the base_waypoints. Based on the image_color determine whether it is necessary to stop.
+
+
+###### Approach:
+
+We used the Bosch Traffic Light Dataset to build a classifier leveraging the tensorflow object detection API and also using a pretrained faster rcnn inception v2 model.
+
+We experimented with a ssd model but it didn't work as well with small sized traffic lights.
 
 #### Object Detection Lab
 
