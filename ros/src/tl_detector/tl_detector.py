@@ -14,7 +14,7 @@ import yaml
 from scipy.spatial import KDTree
 
 STATE_COUNT_THRESHOLD = 9
-IMAGE_BUFFER = 3
+IMAGE_BUFFER = 4
 
 class TLDetector(object):
     def __init__(self):
@@ -150,7 +150,7 @@ class TLDetector(object):
         """
 
         if not self.is_site:
-            rospy.logwarn('simply returning light state')
+            #rospy.logwarn('simply returning light state')
             return light.state
         """
 
