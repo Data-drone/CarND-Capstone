@@ -10,7 +10,7 @@ class TLClassifier(object):
         MODEL_DIR = 'faster_rcnn_inception_v2_export'
         self.model_file = os.path.join(current_path, MODEL_DIR, 'frozen_inference_graph.pb')
 
-        #self.model_graph = self.load_graph(self.model_file)
+        self.model_graph = self.load_graph(self.model_file)
 
 
     def load_graph(self, graph_file):
@@ -22,6 +22,19 @@ class TLClassifier(object):
                 od_graph_def.ParseFromString(serialized_graph)
                 tf.import_graph_def(od_graph_def, name='')
         return graph
+
+    def filter_boxes(self, min_score, boxes, scores, classes):
+        """Return boxes with a confidence >= `min_score`"""
+        n = len(classes)
+        idxs = []
+        for i in range(n):
+            if scores[i] >= min_score:
+                idxs.append(i)
+        
+        filtered_boxes = boxes[idxs, ...]
+        filtered_scores = scores[idxs, ...]
+        filtered_classes = classes[idxs, ...]
+        return filtered_boxes, filtered_scores, filtered_classes
 
 
     def get_classification(self, image):
@@ -35,6 +48,8 @@ class TLClassifier(object):
 
         """
 
+        image_np = np.expand_dims(np.asarray(image, dtype=np.uint8), 0)
+
         image_tensor = self.model_graph.get_tensor_by_name('image_tensor:0')
         detection_boxes = self.model_graph.get_tensor_by_name('detection_boxes:0')
         detection_scores = self.model_graph.get_tensor_by_name('detection_scores:0')
@@ -43,13 +58,21 @@ class TLClassifier(object):
         #TODO implement light color prediction
         with tf.Session(graph=self.model_graph) as sess:
             (boxes, scores, classes) = sess.run([detection_boxes, detection_scores, detection_classes], 
-                                        feed_dict={image_tensor: image})
+                                        feed_dict={image_tensor: image_np})
 
             boxes = np.squeeze(boxes)
             scores = np.squeeze(scores)
             classes = np.squeeze(classes)
 
-            confidence_cutoff = 0.8
+            confidence_cutoff = 0.1
+
+            boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
+
+            for record in classes:
+                if record in [2,4,5,7,8]:
+                    return TrafficLight.RED
+
+            
 
         # depending on the classification, we will return different TrafficLight variables
         return TrafficLight.UNKNOWN
