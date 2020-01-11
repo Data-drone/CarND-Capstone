@@ -62,6 +62,7 @@ class Controller(object):
         throttle = self.throttle_controller.step(vel_error, sample_time)
         brake = 0
 
+        # is this causing jerkiness?
         if linear_vel == 0 and current_vel < 0.1:
             throttle = 0
             brake = 700 # adjusted according to tutorial
@@ -70,6 +71,10 @@ class Controller(object):
             throttle = 0
             decel = max(vel_error, self.decel_limit)
             brake = abs(decel)*self.vehicle_mass*self.wheel_radius
+
+        # debug line
+        rospy.loginfo('throttle={}, brake={}, steer={}, cur_vel={}, err={}'.format(
+            throttle, brake, steering, current_vel, vel_error))
             
         # Return throttle, brake, steer
         return throttle, brake, steering

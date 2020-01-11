@@ -14,6 +14,7 @@ Brian Law - bpl.law@gmail.com
 ### Introduction
 
 As part of this project, we are required to build out a full car control system.
+This includes waypoint following, traffic light detection and stopping logic.
 
 ### Main Nodes
 
