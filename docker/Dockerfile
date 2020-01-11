@@ -29,7 +29,10 @@ RUN apt-get install -y ros-$ROS_DISTRO-image-proc
 RUN apt-get install -y netbase
 
 # fix running locally with camera
-RUN pip install Pillow=6.2.1
+RUN pip install Pillow==6.2.1
+
+# install ros rviz
+RUN apt-get install -y ros-kinetic-rviz
 
 RUN mkdir /capstone
 VOLUME ["/capstone"]
