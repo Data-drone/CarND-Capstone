@@ -34,6 +34,8 @@ RUN pip install Pillow==6.2.1
 # install ros rviz
 RUN apt-get install -y ros-kinetic-rviz
 
+ENV QT_X11_NO_MITSHM 1
+
 RUN mkdir /capstone
 VOLUME ["/capstone"]
 VOLUME ["/root/.ros/log/"]
