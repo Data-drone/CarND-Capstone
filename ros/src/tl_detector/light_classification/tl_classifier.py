@@ -12,6 +12,11 @@ class TLClassifier(object):
 
         self.model_graph = self.load_graph(self.model_file)
 
+        self.image_tensor = self.model_graph.get_tensor_by_name('image_tensor:0')
+        self.detection_boxes = self.model_graph.get_tensor_by_name('detection_boxes:0')
+        self.detection_scores = self.model_graph.get_tensor_by_name('detection_scores:0')
+        self.detection_classes = self.model_graph.get_tensor_by_name('detection_classes:0')
+
 
     def load_graph(self, graph_file):
         graph = tf.Graph()
@@ -50,21 +55,16 @@ class TLClassifier(object):
 
         image_np = np.expand_dims(np.asarray(image, dtype=np.uint8), 0)
 
-        image_tensor = self.model_graph.get_tensor_by_name('image_tensor:0')
-        detection_boxes = self.model_graph.get_tensor_by_name('detection_boxes:0')
-        detection_scores = self.model_graph.get_tensor_by_name('detection_scores:0')
-        detection_classes = self.model_graph.get_tensor_by_name('detection_classes:0')
-        
         #TODO implement light color prediction
         with tf.Session(graph=self.model_graph) as sess:
-            (boxes, scores, classes) = sess.run([detection_boxes, detection_scores, detection_classes], 
-                                        feed_dict={image_tensor: image_np})
+            (boxes, scores, classes) = sess.run([self.detection_boxes, self.detection_scores, self.detection_classes], 
+                                        feed_dict={self.image_tensor: image_np})
 
             boxes = np.squeeze(boxes)
             scores = np.squeeze(scores)
             classes = np.squeeze(classes)
 
-            confidence_cutoff = 0.1
+            confidence_cutoff = 0.3
 
             boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
 
