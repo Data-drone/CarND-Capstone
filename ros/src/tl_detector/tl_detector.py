@@ -13,8 +13,7 @@ import yaml
 
 from scipy.spatial import KDTree
 
-STATE_COUNT_THRESHOLD = 0
-IMAGE_BUFFER = 4
+STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
@@ -90,7 +89,6 @@ class TLDetector(object):
         self.has_image = True
         self.camera_image = msg
 
-        #if self.image_buffer == 0:
         light_wp, state = self.process_traffic_lights()
 
         '''
@@ -106,6 +104,9 @@ class TLDetector(object):
             #cv2.imwrite(, msg)
             pass
 
+        if self.state == TrafficLight.RED:
+            rospy.logdebug('Detected Red State')
+
         if self.state != state:
             self.state_count = 0
             self.state = state
@@ -117,11 +118,6 @@ class TLDetector(object):
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
-
-        #elif self.image_buffer <= IMAGE_BUFFER:
-        #    self.image_buffer += 1
-        #else:
-        #    self.image_buffer = 0
 
 
     def get_closest_waypoint(self, x, y):
