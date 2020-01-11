@@ -2,6 +2,11 @@ import os
 from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 import numpy as np
+from PIL import ImageDraw, ImageColor
+import time
+
+cmap = ImageColor.colormap
+COLOR_LIST = sorted([c for c in cmap.keys()])
 
 class TLClassifier(object):
     def __init__(self):
@@ -16,6 +21,8 @@ class TLClassifier(object):
         self.detection_boxes = self.model_graph.get_tensor_by_name('detection_boxes:0')
         self.detection_scores = self.model_graph.get_tensor_by_name('detection_scores:0')
         self.detection_classes = self.model_graph.get_tensor_by_name('detection_classes:0')
+
+        self.visualise = True
 
 
     def load_graph(self, graph_file):
@@ -41,6 +48,29 @@ class TLClassifier(object):
         filtered_classes = classes[idxs, ...]
         return filtered_boxes, filtered_scores, filtered_classes
 
+    def draw_boxes(self, image, boxes, classes, thickness=4):
+        """draw bounding boxes on the image"""
+        draw = ImageDraw.Draw(image)
+        for i in range(len(boxes)):
+            bot, left, top, right = boxes[i, ...]
+            class_id = int(classes[i])
+            color = COLOR_LIST[class_id]
+            draw.line([(left, top), (left, bot), (right, bot), (right, top), (left, top)], width=thickness, fill=color)
+
+    def to_image_coords(self, boxes, height, width):
+        """
+        The original box coordinate output is normalized, i.e [0, 1].
+        
+        This converts it back to the original coordinate based on the image
+        size.
+        """
+        box_coords = np.zeros_like(boxes)
+        box_coords[:, 0] = boxes[:, 0] * height
+        box_coords[:, 1] = boxes[:, 1] * width
+        box_coords[:, 2] = boxes[:, 2] * height
+        box_coords[:, 3] = boxes[:, 3] * width
+        
+        return box_coords
 
     def get_classification(self, image):
         """Determines the color of the traffic light in the image
@@ -64,12 +94,22 @@ class TLClassifier(object):
             scores = np.squeeze(scores)
             classes = np.squeeze(classes)
 
-            confidence_cutoff = 0.3
+            confidence_cutoff = 0.1
 
             boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
 
             for record in classes:
                 if record in [2,4,5,7,8]:
+
+                    if self.visualise:
+                        width, height = image.size
+                        box_coords = self.to_image_coords(boxes, height, width)
+                        self.draw_boxes(image, box_coords, classes)
+
+                        # save image
+                        name = "../../../../img_export/class_red-{}.png".format(time.time()*100)
+                        image.save(name, "PNG")
+
                     return TrafficLight.RED
 
             

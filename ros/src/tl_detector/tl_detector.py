@@ -10,6 +10,7 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 import yaml
+import time
 
 from scipy.spatial import KDTree
 
@@ -45,6 +46,7 @@ class TLDetector(object):
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
         self.is_site = self.config['is_site']
+        
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
@@ -60,7 +62,8 @@ class TLDetector(object):
         self.state_count = 0
 
         # manual flick this for now
-        self.collect = False
+        self.collect = True
+        self.run_classifier = False
 
         rospy.spin()
         
@@ -100,9 +103,11 @@ class TLDetector(object):
 
         # add routine to collect images for labelling
         if self.collect:
-            #TODO we need a filename generator?
-            #cv2.imwrite(, msg)
-            pass
+            rospy.logwarn("saving image")
+            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+            name = "../../../img_export/normal-{0}.jpg".format(time.time())
+            cv2.imwrite(name, cv_image)
+            
 
         if self.state == TrafficLight.RED:
             rospy.logdebug('Detected Red State')
@@ -145,7 +150,7 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
 
-        if not self.is_site:
+        if not self.is_site and not self.run_classifier:
             #rospy.logwarn('simply returning light state')
             return light.state
         """
