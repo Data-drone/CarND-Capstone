@@ -4,16 +4,17 @@ import tensorflow as tf
 import numpy as np
 from PIL import ImageDraw, ImageColor
 import time
+import cv2
 
 cmap = ImageColor.colormap
 COLOR_LIST = sorted([c for c in cmap.keys()])
 
 class TLClassifier(object):
-    def __init__(self):
+    def __init__(self, model_dir, is_site):
         #TODO load classifier
         current_path = os.path.dirname(os.path.realpath(__file__))
-        MODEL_DIR = 'faster_rcnn_inception_v2_export'
-        self.model_file = os.path.join(current_path, MODEL_DIR, 'frozen_inference_graph.pb')
+        #MODEL_DIR = 'faster_rcnn_inception_v2_export'
+        self.model_file = os.path.join(current_path, model_dir, 'frozen_inference_graph.pb')
 
         self.model_graph = self.load_graph(self.model_file)
 
@@ -23,6 +24,16 @@ class TLClassifier(object):
         self.detection_classes = self.model_graph.get_tensor_by_name('detection_classes:0')
 
         self.visualise = True
+
+        # we need different logic for different model for now
+        self.is_site = is_site 
+        
+        
+        if self.is_site:
+            self.detect_classes = [2,4,5,7,8]
+        else:
+            # we need to rethink this - 10 will just stop all the time
+            self.detect_classes = [10]
 
 
     def load_graph(self, graph_file):
@@ -84,6 +95,7 @@ class TLClassifier(object):
         """
 
         image_np = np.expand_dims(np.asarray(image, dtype=np.uint8), 0)
+        width, height = image.size
 
         #TODO implement light color prediction
         with tf.Session(graph=self.model_graph) as sess:
@@ -98,18 +110,22 @@ class TLClassifier(object):
 
             boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
 
+            if self.visualise and len(classes) > 0:
+                
+                box_coords = self.to_image_coords(boxes, height, width)
+                self.draw_boxes(image, box_coords, classes)
+
+                # save image
+                name = "../../../../img_export/class_{1}-{0}.png".format(time.time()*100, str(classes[0]))
+                cv2.imwrite(name, image)
+                #image.save(name, "PNG")
+
+
             for record in classes:
-                if record in [2,4,5,7,8]:
 
-                    if self.visualise:
-                        width, height = image.size
-                        box_coords = self.to_image_coords(boxes, height, width)
-                        self.draw_boxes(image, box_coords, classes)
+                if record in self.detect_classes:
 
-                        # save image
-                        name = "../../../../img_export/class_red-{}.png".format(time.time()*100)
-                        image.save(name, "PNG")
-
+                    
                     return TrafficLight.RED
 
             

@@ -47,13 +47,17 @@ class TLDetector(object):
         self.config = yaml.load(config_string)
         self.is_site = self.config['is_site']
         
+        if self.is_site:
+            classifier = 'faster_rcnn_inception_v2_export'
+        else:
+            classifier = 'ssd_mobilenet_v1_coco'
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.image_buffer = 0
 
         self.bridge = CvBridge()
-        self.light_classifier = TLClassifier()
+        self.light_classifier = TLClassifier(classifier, self.is_site)
         self.listener = tf.TransformListener()
 
         self.state = TrafficLight.UNKNOWN
@@ -62,8 +66,8 @@ class TLDetector(object):
         self.state_count = 0
 
         # manual flick this for now
-        self.collect = True
-        self.run_classifier = False
+        self.collect = False
+        self.run_classifier = True
 
         rospy.spin()
         
@@ -102,6 +106,7 @@ class TLDetector(object):
         '''
 
         # add routine to collect images for labelling
+        # this is quite slow....
         if self.collect:
             rospy.logwarn("saving image")
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
@@ -166,7 +171,8 @@ class TLDetector(object):
 
         #Get classification
         rospy.logwarn('running classifier')
-        return self.light_classifier.get_classification(cv_image)
+
+        return self.light_classifier.get_classification(cv_image, light)
         """
 
         """
