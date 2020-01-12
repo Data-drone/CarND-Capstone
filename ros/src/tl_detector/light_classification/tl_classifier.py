@@ -40,7 +40,6 @@ class TLClassifier(object):
 
             return False
 
-
     def detect_coco(self, record, image):
         if record == 10:
 
@@ -55,7 +54,6 @@ class TLClassifier(object):
         else:
 
             return False
-
 
     def load_graph(self, graph_file):
         graph = tf.Graph()
@@ -168,11 +166,13 @@ class TLClassifier(object):
                         #rospy.logwarn('box shape: {}'.format(boxed_image.shape))
                         result = self.detect_coco(record, boxed_image)
 
-                    if result:
+                    if result is True:
                         count += 1
+                        rospy.logwarn('collected red: {}'.format(count))
 
-                if count > 1:    
-                    return TrafficLight.RED
+                        if count >= 1:    
+                            rospy.logwarn('returning red state')
+                            return TrafficLight.RED
 
             
 

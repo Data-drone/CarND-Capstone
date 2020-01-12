@@ -41,7 +41,7 @@ class TLDetector(object):
         rely on the position of the light and the camera image to predict it.
         '''
         sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb, buff_size=2*65536)
+        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb, queue_size = 1, buff_size=5*65536)
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
@@ -113,10 +113,6 @@ class TLDetector(object):
             name = "../../../img_export/normal-{0}.jpg".format(time.time())
             cv2.imwrite(name, cv_image)
             
-
-        if self.state == TrafficLight.RED:
-            rospy.logdebug('Detected Red State')
-
         if self.state != state:
             self.state_count = 0
             self.state = state
