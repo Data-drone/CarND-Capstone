@@ -47,7 +47,7 @@ class TLClassifier(object):
             avg_color_per_row = np.average(image, axis=0)
             avg_color = np.average(avg_color_per_row, axis=0)
 
-            rospy.logwarn('color: {}'.format(avg_color))
+            #rospy.logwarn('color: {}'.format(avg_color))
 
             if (avg_color[0] > avg_color[1]) and (avg_color[0] > avg_color[2]):
                 rospy.logwarn('red detected - coco')
@@ -159,18 +159,18 @@ class TLClassifier(object):
 
                         result = self.detect_site(record)
                     else:
-                        rospy.logwarn('box coords: {}'.format(box_co))
-                        rospy.logwarn('image np shape: {}'.format(image_np.shape))
+                        #rospy.logwarn('box coords: {}'.format(box_co))
+                        #rospy.logwarn('image np shape: {}'.format(image_np.shape))
                         #rospy.logwarn('image type: {}'.format(image_np.type))
                         boxed_image = np_sing_image[int(box_co[0]):int(box_co[2]), 
                                                 int(box_co[1]):int(box_co[3])]
-                        rospy.logwarn('box shape: {}'.format(boxed_image.shape))
+                        #rospy.logwarn('box shape: {}'.format(boxed_image.shape))
                         result = self.detect_coco(record, boxed_image)
 
                     if result:
                         count += 1
 
-                if count > 2:    
+                if count > 1:    
                     return TrafficLight.RED
 
             
