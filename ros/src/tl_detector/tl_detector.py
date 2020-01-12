@@ -41,19 +41,23 @@ class TLDetector(object):
         rely on the position of the light and the camera image to predict it.
         '''
         sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb, buff_size=2*65536)
+        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb, queue_size = 1, buff_size=5*65536)
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
         self.is_site = self.config['is_site']
         
+        if self.is_site:
+            classifier = 'faster_rcnn_inception_v2_export'
+        else:
+            classifier = 'ssd_mobilenet_v1_coco'
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.image_buffer = 0
 
         self.bridge = CvBridge()
-        self.light_classifier = TLClassifier()
+        self.light_classifier = TLClassifier(classifier, self.is_site)
         self.listener = tf.TransformListener()
 
         self.state = TrafficLight.UNKNOWN
@@ -62,8 +66,8 @@ class TLDetector(object):
         self.state_count = 0
 
         # manual flick this for now
-        self.collect = True
-        self.run_classifier = False
+        self.collect = False
+        self.run_classifier = True
 
         rospy.spin()
         
@@ -102,16 +106,13 @@ class TLDetector(object):
         '''
 
         # add routine to collect images for labelling
+        # this is quite slow....
         if self.collect:
             rospy.logwarn("saving image")
             cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
             name = "../../../img_export/normal-{0}.jpg".format(time.time())
             cv2.imwrite(name, cv_image)
             
-
-        if self.state == TrafficLight.RED:
-            rospy.logdebug('Detected Red State')
-
         if self.state != state:
             self.state_count = 0
             self.state = state
@@ -150,9 +151,10 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
         """
 
-        if not self.is_site and not self.run_classifier:
-            #rospy.logwarn('simply returning light state')
-            return light.state
+        if not self.is_site: 
+            if not self.run_classifier:
+                #rospy.logwarn('simply returning light state')
+                return light.state
         """
 
         return light.state
@@ -165,7 +167,8 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         #Get classification
-        rospy.logwarn('running classifier')
+        rospy.loginfo('running classifier')
+
         return self.light_classifier.get_classification(cv_image)
         """
 
