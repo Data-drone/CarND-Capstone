@@ -25,7 +25,7 @@ class TLClassifier(object):
         self.detection_scores = self.model_graph.get_tensor_by_name('detection_scores:0')
         self.detection_classes = self.model_graph.get_tensor_by_name('detection_classes:0')
 
-        self.visualise = True
+        self.visualise = False
 
         # we need different logic for different model for now
         self.is_site = is_site 
@@ -129,18 +129,19 @@ class TLClassifier(object):
             scores = np.squeeze(scores)
             classes = np.squeeze(classes)
 
-            confidence_cutoff = 0.1
+            confidence_cutoff = 0.2
 
             boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
 
             if self.visualise and len(classes) > 0:
                 
                 box_coords = self.to_image_coords(boxes, height, width)
-                self.draw_boxes(image, box_coords, classes)
+                self.draw_boxes(np_sing_image, box_coords, classes)
 
                 # save image
-                name = "../../../../img_export/class_{1}-{0}.png".format(time.time()*100, str(classes[0]))
-                cv2.imwrite(name, image)
+                rospy.logwarn('saving images')
+                name = "../../../../img_export/classifier-{0}.png".format(time.time()*100)
+                cv2.imwrite(name, np_sing_image)
                 #image.save(name, "PNG")
 
             count = 0
