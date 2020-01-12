@@ -2,15 +2,14 @@ import os
 from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 import numpy as np
-from PIL import ImageDraw, ImageColor
+from PIL import Image, ImageColor, ImageDraw
 import time
 import cv2
+import rospy
+
 
 cmap = ImageColor.colormap
 COLOR_LIST = sorted([c for c in cmap.keys()])
-
-
-
 
 class TLClassifier(object):
     def __init__(self, model_dir, is_site):
@@ -33,9 +32,10 @@ class TLClassifier(object):
         
     def detect_site(self, record):
         if record in [2,4,5,7,8]:
-
-            return True
             
+            rospy.logwarn('red detected - site')
+            return True
+
         else:
 
             return False
@@ -47,8 +47,10 @@ class TLClassifier(object):
             avg_color_per_row = np.average(image, axis=0)
             avg_color = np.average(avg_color_per_row, axis=0)
 
-            if (avg_color[0] > avg_color[1]) and (avg_color[0] > avg_color[2]):
+            rospy.logwarn('color: {}'.format(avg_color))
 
+            if (avg_color[0] > avg_color[1]) and (avg_color[0] > avg_color[2]):
+                rospy.logwarn('red detected - coco')
                 return True
         else:
 
@@ -80,7 +82,8 @@ class TLClassifier(object):
 
     def draw_boxes(self, image, boxes, classes, thickness=4):
         """draw bounding boxes on the image"""
-        draw = ImageDraw.Draw(image)
+        draw = Image.fromarray(image.astype('uint8'), 'RGB')
+        draw = ImageDraw.Draw(draw)
         for i in range(len(boxes)):
             bot, left, top, right = boxes[i, ...]
             class_id = int(classes[i])
@@ -112,9 +115,10 @@ class TLClassifier(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-
-        image_np = np.expand_dims(np.asarray(image, dtype=np.uint8), 0)
-        width, height = image.size
+        np_sing_image = np.asarray(image, dtype=np.uint8)
+        image_np = np.expand_dims(np_sing_image, 0)
+        height, width, channels = image.shape
+        #rospy.logwarn('H:{0} W:{1} C:{2}'.format(height, width, channels))
 
         #TODO implement light color prediction
         with tf.Session(graph=self.model_graph) as sess:
@@ -141,26 +145,33 @@ class TLClassifier(object):
 
             count = 0
 
-            for index, record in enumerate(classes):
+            if len(classes) > 1:
 
-                box = boxes[index]
-                scores = scores[index]
+                box_coords = self.to_image_coords(boxes, height, width)
 
-                # make this a function?
-                if self.is_site:
+                for index, record in enumerate(classes):
 
-                    result = self.detect_site(record)
-                else:
-                    box_coords = self.to_image_coords(boxes, height, width)
-                    boxed_image = tf.image.crop_to_bounding_box(image, box_coords[1], box_coords[0],
-                                                                box_coords[3], box_coords[2])
-                    result = self.detect_coco(record, boxed_image)
+                    box_co = box_coords[index]
+                    #scores = scores[index]
 
-                if result:
-                    count += 1
+                    # make this a function?
+                    if self.is_site:
 
-            if count > 2:    
-                return TrafficLight.RED
+                        result = self.detect_site(record)
+                    else:
+                        rospy.logwarn('box coords: {}'.format(box_co))
+                        rospy.logwarn('image np shape: {}'.format(image_np.shape))
+                        #rospy.logwarn('image type: {}'.format(image_np.type))
+                        boxed_image = np_sing_image[int(box_co[0]):int(box_co[2]), 
+                                                int(box_co[1]):int(box_co[3])]
+                        rospy.logwarn('box shape: {}'.format(boxed_image.shape))
+                        result = self.detect_coco(record, boxed_image)
+
+                    if result:
+                        count += 1
+
+                if count > 2:    
+                    return TrafficLight.RED
 
             
 
