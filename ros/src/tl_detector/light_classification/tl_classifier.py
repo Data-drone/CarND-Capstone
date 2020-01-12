@@ -9,6 +9,9 @@ import cv2
 cmap = ImageColor.colormap
 COLOR_LIST = sorted([c for c in cmap.keys()])
 
+
+
+
 class TLClassifier(object):
     def __init__(self, model_dir, is_site):
         #TODO load classifier
@@ -28,12 +31,28 @@ class TLClassifier(object):
         # we need different logic for different model for now
         self.is_site = is_site 
         
-        
-        if self.is_site:
-            self.detect_classes = [2,4,5,7,8]
+    def detect_site(self, record):
+        if record in [2,4,5,7,8]:
+
+            return True
+            
         else:
-            # we need to rethink this - 10 will just stop all the time
-            self.detect_classes = [10]
+
+            return False
+
+
+    def detect_coco(self, record, image):
+        if record == 10:
+
+            avg_color_per_row = np.average(image, axis=0)
+            avg_color = np.average(avg_color_per_row, axis=0)
+
+            if (avg_color[0] > avg_color[1]) and (avg_color[0] > avg_color[2]):
+
+                return True
+        else:
+
+            return False
 
 
     def load_graph(self, graph_file):
@@ -120,13 +139,28 @@ class TLClassifier(object):
                 cv2.imwrite(name, image)
                 #image.save(name, "PNG")
 
+            count = 0
 
-            for record in classes:
+            for index, record in enumerate(classes):
 
-                if record in self.detect_classes:
+                box = boxes[index]
+                scores = scores[index]
 
-                    
-                    return TrafficLight.RED
+                # make this a function?
+                if self.is_site:
+
+                    result = self.detect_site(record)
+                else:
+                    box_coords = self.to_image_coords(boxes, height, width)
+                    boxed_image = tf.image.crop_to_bounding_box(image, box_coords[1], box_coords[0],
+                                                                box_coords[3], box_coords[2])
+                    result = self.detect_coco(record, boxed_image)
+
+                if result:
+                    count += 1
+
+            if count > 2:    
+                return TrafficLight.RED
 
             
 
