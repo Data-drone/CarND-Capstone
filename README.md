@@ -4,7 +4,7 @@ based off of project repo: https://github.com/udacity/CarND-Capstone
 
 This is the repo for my final Udacity Self Driving Car Nano-degree Capstone Project
 
-## Notes to Review
+## Notes to Reviewer
 
 This is an individual submission by:
 
