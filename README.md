@@ -25,7 +25,7 @@ Finds waypoints ahead of the car to signal where to drive:
 This service subscribes to:
 - `/base_waypoints`
 - `/current_pose`
-- `'/traffic_waypoint`
+- `/traffic_waypoint`
 
 Based on the base waypoints of the car and current pose of the car, the waypoint updater publishes a list of waypoints for the car to follow. The `traffic_waypoint` message comes from the traffic light detector and signals to the car that a red light has been detected.
 
