@@ -131,9 +131,11 @@ class TLClassifier(object):
             scores = np.squeeze(scores)
             classes = np.squeeze(classes)
 
-            confidence_cutoff = 0.2
+            confidence_cutoff = 0.5
 
             boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
+            
+            rospy.loginfo('num classes post cutoff {0}'.format(len(classes)))
 
             if self.visualise and len(classes) > 0:
                 
@@ -159,7 +161,7 @@ class TLClassifier(object):
 
                     # make this a function?
                     if self.is_site and self.site_model:
-
+                        rospy.logwarn('detected red')
                         result = self.detect_site(record)
                     else:
                         #rospy.logwarn('box coords: {}'.format(box_co))
