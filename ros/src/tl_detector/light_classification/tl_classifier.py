@@ -29,6 +29,9 @@ class TLClassifier(object):
 
         # we need different logic for different model for now
         self.is_site = is_site 
+
+        # to manually disable the site model
+        self.site_model = False # True is on
         
     def detect_site(self, record):
         if record in [2,4,5,7,8]:
@@ -154,7 +157,7 @@ class TLClassifier(object):
                     #scores = scores[index]
 
                     # make this a function?
-                    if self.is_site:
+                    if self.is_site and self.site_model:
 
                         result = self.detect_site(record)
                     else:

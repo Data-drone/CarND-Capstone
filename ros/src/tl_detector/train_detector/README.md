@@ -170,3 +170,16 @@ python3 object_detection/export_inference_graph.py \
     --output_directory /root/work/CarND-Capstone/ros/src/tl_detector/train_detector/faster_rcnn_inception_v2_export
 
 ```
+
+#### Model 6
+
+Previous models on bosch set did not generalise out to the actual CarND Data from the testbag. 
+
+```Bash
+# train model
+python3 object_detection/train.py \
+    --logtostderr \
+    --pipeline_config_path=/root/work/CarND-Capstone/ros/src/tl_detector/train_detector/models/model_6/model_6.config \
+    --train_dir=/root/work/CarND-Capstone/ros/src/tl_detector/train_detector/models/model_6/train/ \
+    --num_clones 2
+```

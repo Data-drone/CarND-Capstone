@@ -66,7 +66,7 @@ class TLDetector(object):
         self.state_count = 0
 
         # manual flick this for now
-        self.collect = False
+        self.collect = True
         self.run_classifier = True
 
         rospy.spin()
