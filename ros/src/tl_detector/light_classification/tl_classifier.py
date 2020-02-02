@@ -31,10 +31,11 @@ class TLClassifier(object):
         self.is_site = is_site 
 
         # to manually disable the site model
-        self.site_model = False # True is on
+        self.site_model = True # True is on
         
     def detect_site(self, record):
-        if record in [2,4,5,7,8]:
+        #if record in [2,4,5,7,8]:
+        if record in [2]:
             
             rospy.logwarn('red detected - site')
             return True

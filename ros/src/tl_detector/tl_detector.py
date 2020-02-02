@@ -48,7 +48,8 @@ class TLDetector(object):
         self.is_site = self.config['is_site']
         
         if self.is_site:
-            classifier = 'faster_rcnn_inception_v2_export'
+            #classifier = 'faster_rcnn_inception_v2_export'
+            classifier = 'faster_rcnn_site_data'
         else:
             classifier = 'ssd_mobilenet_v1_coco'
 
@@ -66,7 +67,7 @@ class TLDetector(object):
         self.state_count = 0
 
         # manual flick this for now
-        self.collect = True
+        self.collect = False
         self.run_classifier = True
 
         rospy.spin()
